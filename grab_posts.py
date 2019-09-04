@@ -1,4 +1,6 @@
-# Collects list of new HackerNews stories and adds to file
+# Grabs list of new HackerNews stories
+# every 5 hours
+# and adds to file
 # https://github.com/HackerNews/API
 
 import json
