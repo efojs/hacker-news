@@ -38,6 +38,7 @@ def grab_and_add_news():
 
     # leave only unique
     new_data = new_data.drop_duplicates(keep='first')
+    print(datetime.datetime.now())
     print("added: " + str(len(new_data)-old_len))
 
     # sort
@@ -46,7 +47,7 @@ def grab_and_add_news():
     # save file
     new_data.to_csv(filename, header=None, index=None)
 
-
+# grab_and_add_news()
 scheduler = BlockingScheduler()
 scheduler.add_job(grab_and_add_news, 'interval', hours=5)
 scheduler.start()
