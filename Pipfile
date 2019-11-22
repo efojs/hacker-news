@@ -11,6 +11,8 @@ pandas = "*"
 numpy = "*"
 matplotlib = "*"
 apscheduler = "*"
+jupyter = "*"
+feedparser = "*"
 
 [requires]
 python_version = "3.7"
