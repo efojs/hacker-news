@@ -61,7 +61,11 @@ def fetch(id):
             return story
     return {}
 
-
+def old_enough(story):
+    if (time.time() - story["time"]) > 172800:
+        return True
+    else:
+        return False
 
 def fetch_stories():
     print("start fetch:", time.ctime())
@@ -72,28 +76,35 @@ def fetch_stories():
 
     all_ids = read_ids("all")
     last_id = all_ids[-1:]
+    to_fetch = len(all_ids)-len(fetched_ids)
     print("All IDs:\t", len(all_ids))
-    print("To fetch:\t", len(all_ids)-len(fetched_ids))
+    print("To fetch:\t", to_fetch)
 
     stories = {}
     i = 0
+    if to_fetch < 10:
+        i = to_fetch
+
     count = 0
     for id in all_ids:
-        if is_fetched(fetched_ids, id) != True:
+        if is_fetched(fetched_ids, id) == False:
             story = fetch(id)
             if len(story) != 0:
-                stories[id] = story
-                if i == 10 or id == last_id:
-                    save_stories(stories)
-                    save_ids(list(stories.keys()))
-                    print(":", end="", flush=True)
-                    stories = {}
-                    i = 0
-                print(".", end="", flush=True)
-                i += 1
-                count += 1
-                if count % 1000 == 0:
-                    print(count, end="", flush=True)
+                if old_enough(story):
+                    stories[id] = story
+                    if i == 10:
+                        save_stories(stories)
+                        save_ids(list(stories.keys()))
+                        print(":", end="", flush=True)
+                        stories = {}
+                        i = 0
+                    print(".", end="", flush=True)
+                    i += 1
+                    count += 1
+                    if count % 1000 == 0:
+                        print(count, end="", flush=True)
+                else:
+                    break
             else:
                 print("(", id, ")", end="")
 
