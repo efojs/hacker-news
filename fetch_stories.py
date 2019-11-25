@@ -13,25 +13,24 @@ def read_ids(prefix):
     return list
 
 
-def save_story(story):
+def save_stories(stories):
+    # with open('./data/test_fetched_stories.json', 'r') as f:
     with open('./data/fetched_stories.json', 'r') as f:
         dict = json.load(f)
-    dict.update(story)
+    dict.update(stories)
+    # with open('./data/test_fetched_stories.json', 'w+') as f:
     with open('./data/fetched_stories.json', 'w+') as f:
         json.dump(dict, f)
 
-def save_id(id):
+def save_ids(ids):
     fetched_ids = read_ids("fetched")
-    fetched_ids.append(id)
+    fetched_ids.extend(ids)
     fetched_ids.sort()
-    with open('fetched_stories_ids.csv', 'w+') as file:
-    # with open('fetched_stories_ids.csv', 'w') as file:
+    # with open('test.csv', 'w+') as file:
+    with open('fetched_stories_ids.csv', 'w') as file:
         writer = csv.writer(file)
         for id in fetched_ids:
             writer.writerow([id])
-
-
-
 
 
 def is_fetched(fetched_ids, id):
@@ -65,21 +64,46 @@ def fetch(id):
 
 
 def fetch_stories():
+    print("start fetch:", time.ctime())
     # to load file once during main huge fetch
-    # after move old_ids to is_fetched()
-    old_ids = read_ids("fetched")
-    print("old_ids:", len(old_ids))
+    # after move fetched_ids to is_fetched()
+    fetched_ids = read_ids("fetched")
+    print("Fetched IDs:\t", len(fetched_ids))
 
-    for id in read_ids("all"):
-        if is_fetched(old_ids, id) != True:
+    all_ids = read_ids("all")
+    last_id = all_ids[-1:]
+    print("All IDs:\t", len(all_ids))
+    print("To fetch:\t", len(all_ids)-len(fetched_ids))
+
+    stories = {}
+    i = 0
+    count = 0
+    for id in all_ids:
+        if is_fetched(fetched_ids, id) != True:
             story = fetch(id)
-            save_story({id: story})
-            save_id(id)
-            print(".", end="")
+            if len(story) != 0:
+                stories[id] = story
+                if i == 10 or id == last_id:
+                    save_stories(stories)
+                    save_ids(list(stories.keys()))
+                    print(":", end="", flush=True)
+                    stories = {}
+                    i = 0
+                print(".", end="", flush=True)
+                i += 1
+                count += 1
+                if count % 1000 == 0:
+                    print(count, end="", flush=True)
+            else:
+                print("(", id, ")", end="")
 
 
-fetch_stories()
+if __name__ == '__main__':
+    # run via: $ python app.py
+    fetch_stories()
 
+
+# fastest way to check if a value is in a list:
 # a = []
 # for id in all_ids:
 #     index = bisect.bisect_left(fetched_ids, id)
