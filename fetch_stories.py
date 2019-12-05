@@ -22,15 +22,26 @@ def save_stories(stories):
     with open('./data/fetched_stories.json', 'w+') as f:
         json.dump(dict, f)
 
-def save_ids(ids):
-    fetched_ids = read_ids("fetched")
-    fetched_ids.extend(ids)
-    fetched_ids.sort()
+def save_ids(ids_to_save, prefix):
+    ids_list = read_ids(prefix)
+    old_len = len(ids_list)
+    last_saved = ids_list[-1]
+
+    # add news
+    ids_list.extend(ids_to_save)
+
+    # remove duplicates
+    ids_list = list(set(ids_list))
+
+    ids_list.sort()
     # with open('test.csv', 'w+') as file:
-    with open('fetched_stories_ids.csv', 'w') as file:
+    with open(prefix + '_stories_ids.csv', 'w') as file:
         writer = csv.writer(file)
-        for id in fetched_ids:
+        for id in ids_list:
             writer.writerow([id])
+
+    added = len(ids_list)-old_len
+    return {"added":added, "last_saved": last_saved }
 
 
 def is_fetched(fetched_ids, id):
@@ -67,34 +78,43 @@ def old_enough(story):
     else:
         return False
 
+
+def make_to_fetch(fetched_ids):
+    all_ids = read_ids("all")
+
+    if len(fetched_ids) == 0:
+        return all_ids
+    else:
+        return all_ids[all_ids.index(fetched_ids[-1])+1:]
+
+
 def fetch_stories():
     print("start fetch:", time.ctime())
-    # to load file once during main huge fetch
-    # after move fetched_ids to is_fetched()
+
     fetched_ids = read_ids("fetched")
     print("Fetched IDs:\t", len(fetched_ids))
 
-    all_ids = read_ids("all")
-    last_id = all_ids[-1:]
-    to_fetch = len(all_ids)-len(fetched_ids)
-    print("All IDs:\t", len(all_ids))
-    print("To fetch:\t", to_fetch)
+    to_fetch = make_to_fetch(fetched_ids)
+
+    last_id = to_fetch[-1]
+    print("To fetch:\t", len(to_fetch))
 
     stories = {}
     i = 0
-    if to_fetch < 10:
-        i = to_fetch
+    if len(to_fetch) < 20:
+        i = len(to_fetch)
 
     count = 0
-    for id in all_ids:
+    for id in to_fetch:
+
         if is_fetched(fetched_ids, id) == False:
             story = fetch(id)
-            if len(story) != 0:
+            if len(story) != 0 and not any(k in story for k in ["dead", "deleted"]):
                 if old_enough(story):
                     stories[id] = story
-                    if i == 10:
+                    if i == 20:
                         save_stories(stories)
-                        save_ids(list(stories.keys()))
+                        save_ids(list(stories.keys()), "fetched")
                         print(":", end="", flush=True)
                         stories = {}
                         i = 0
@@ -104,9 +124,10 @@ def fetch_stories():
                     if count % 1000 == 0:
                         print(count, end="", flush=True)
                 else:
+                    print("")
                     break
             else:
-                print("(", id, ")", end="")
+                print(" ", end="")
 
 
 if __name__ == '__main__':
