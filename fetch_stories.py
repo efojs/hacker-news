@@ -6,20 +6,19 @@ import requests
 
 def read_ids(prefix):
     list = []
-    with open(prefix + '_stories_ids.csv', 'r') as file:
+    with open("./data/" + prefix + '_stories_ids.csv', 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             list.append(int(row[0]))
     return list
 
-
 def save_stories(stories):
     # with open('./data/test_fetched_stories.json', 'r') as f:
-    with open('./data/fetched_stories.json', 'r') as f:
+    with open('./data/json/fetched_stories.json', 'r') as f:
         dict = json.load(f)
     dict.update(stories)
     # with open('./data/test_fetched_stories.json', 'w+') as f:
-    with open('./data/fetched_stories.json', 'w+') as f:
+    with open('./data/json/fetched_stories.json', 'w+') as f:
         json.dump(dict, f)
 
 def save_ids(ids_to_save, prefix):
@@ -35,7 +34,7 @@ def save_ids(ids_to_save, prefix):
 
     ids_list.sort()
     # with open('test.csv', 'w+') as file:
-    with open(prefix + '_stories_ids.csv', 'w') as file:
+    with open("./data/" + prefix + '_stories_ids.csv', 'w') as file:
         writer = csv.writer(file)
         for id in ids_list:
             writer.writerow([id])
